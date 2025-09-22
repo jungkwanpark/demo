@@ -1,0 +1,106 @@
+---------------------------------------------------------------
+https://docs.streamlit.io/develop/api-reference/text/st.title
+https://docs.streamlit.io/develop/api-reference/caching-and-state/st.session_state
+https://docs.streamlit.io/develop/api-reference/status/st.status
+https://docs.streamlit.io/develop/api-reference/chat/st.chat_message
+https://docs.streamlit.io/develop/api-reference/write-magic/st.write
+https://docs.streamlit.io/develop/api-reference/chat/st.chat_input
+https://docs.streamlit.io/develop/api-reference/status/st.error
+---------------------------------------------------------------
+streamlit.title   =>   Display text for title. (채팅창에 Streamlit 타이틀 표시)
+streamlit.session_state   =>   Store and persist session state + Share variables between reruns for each user session (내부적으로 Streamlit 세션 상태 저장/관리)
+streamlit.status (with streamlit.status 형태로 사용)   =>   Insert a status container to display output from long-running tasks. (채팅창에 상태 메시지/진행 상황 표시)
+streamlit.chat_message   =>   Insert a chat message container. (채팅창에 말풍선 출력)
+streamlit.write   =>   Displays arguments in the app. (채팅창의 말풍선 안에, 실제 내용을 써서 출력)
+streamlit.chat_input   =>   Display a chat input widget. (채팅창에서 사용자 Input 받기)
+streamlit.error   =>   Display error message. (채팅창에 에러 메시지 표시)
+---------------------------------------------------------------
+streamlit.title()
+
+streamlit.session_state[" "] = [{" " : " ", " " : " "}]
+streamlit.session_state.messages
+streamlit.session_state.messages.append()
+
+streamlit.chat_message("").write("")
+
+streamlit.chat_input()
+---------------------------------------------------------------
+streamlit.title("Azure OpenAI 챗봇 서비스")
+
+streamlit.session_state["messages"] = [{"role": "assistant", "content": "무엇을 도와드릴까요?"}]
+streamlit.session_state.messages
+streamlit.session_state.messages.append({"role": "user", "content": prompt})
+
+streamlit.chat_message(msg["role"]).write(msg["content"])
+streamlit.chat_message("user").write(prompt)
+
+streamlit.chat_input()
+---------------------------------------------------------------
+
+
+app.py
+---------------------------------------------------------------------------------------------------------
+import os
+import streamlit
+from dotenv import load_dotenv
+from langchain_openai import AzureChatOpenAI
+
+# .env 파일 로드
+load_dotenv()
+
+# 환경 변수 읽기
+AZURE_OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT")
+AZURE_OPENAI_API_KEY = os.getenv("AZURE_OPENAI_API_KEY")
+AZURE_OPENAI_VERSION = os.getenv("AZURE_OPENAI_VERSION")
+AZURE_OPENAI_MODEL = os.getenv("AZURE_OPENAI_MODEL")
+AZURE_OPENAI_TEMPERATURE = os.getenv("AZURE_OPENAI_TEMPERATURE")
+
+streamlit.title("💬 Azure OpenAI 챗봇 서비스")
+
+# Streamlit 최초 화면 인사말
+if "messages" not in streamlit.session_state:
+    streamlit.session_state["messages"] = [{"role": "assistant", "content": "무엇을 도와드릴까요?"}]
+
+# 대화 기록 출력
+for msg in streamlit.session_state.messages:
+    print(msg)
+    streamlit.chat_message(msg["role"]).write(msg["content"])
+
+# Azure OpenAI 모델 선언
+Azure_OpenAI = AzureChatOpenAI(
+    azure_endpoint = AZURE_OPENAI_ENDPOINT,
+    api_key = AZURE_OPENAI_API_KEY,
+    api_version = AZURE_OPENAI_VERSION,
+    deployment_name = AZURE_OPENAI_MODEL,
+    temperature = AZURE_OPENAI_TEMPERATURE)
+
+# 사용자 입력 처리
+if prompt := streamlit.chat_input():
+    print(prompt)
+    streamlit.session_state.messages.append({"role": "user", "content": prompt})
+    streamlit.chat_message("user").write(prompt)
+
+    # Azure OpenAI 호출
+    response = Azure_OpenAI.invoke(prompt)
+    msg = response.content
+
+    streamlit.session_state.messages.append({"role": "assistant", "content": msg})
+    streamlit.chat_message("assitant").write(msg)
+---------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
